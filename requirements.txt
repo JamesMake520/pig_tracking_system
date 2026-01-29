@@ -1,0 +1,47 @@
+# 猪只追踪系统依赖包
+#
+# 注意：
+# 1. PyTorch 需要根据 CUDA 版本单独安装，不要直接从 pip 安装
+#    - CUDA 11.8: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+#    - CUDA 12.1: pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+#    - CPU only: pip install torch torchvision
+# 2. 建议使用虚拟环境: python -m venv venv
+# 3. 如需完整安装，运行: setup.bat (Windows) 或 setup.sh (Linux/Mac)
+
+# ===== 深度学习框架 =====
+# PyTorch - 手动安装，不要从这里安装
+# torch>=2.0.0
+# torchvision>=0.15.0
+
+# ===== 计算机视觉 =====
+opencv-python>=4.8.0
+opencv-contrib-python>=4.8.0
+Pillow>=9.5.0
+
+# ===== 目标追踪 =====
+# ByteTrack 追踪器（包含在 third_party 目录中）
+supervision>=0.16.0
+filterpy>=1.4.5
+
+# ===== 数据处理 =====
+numpy>=1.24.0,<2.0.0
+pandas>=2.0.0
+scipy>=1.10.0
+
+# ===== 进度与日志 =====
+tqdm>=4.65.0
+colorama>=0.4.6
+
+# ===== 编译依赖 =====
+# 注意：Windows 用户可能需要安装 Visual C++ Build Tools
+Cython>=0.29.0
+setuptools>=65.0.0
+
+# ===== ByteTrack 依赖 =====
+lap>=0.4.0
+cython-bbox>=0.1.3
+motmetrics>=1.4.0
+
+# ===== 可选：性能优化 =====
+# numba>=0.57.0  # JIT 编译加速
+# onnxruntime-gpu>=1.15.0  # 如需 ONNX 模型推理

@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.Python
+
+# 虚拟环境
+venv/
+.venv/
+env/
+ENV/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 模型文件（体积较大，建议单独提供下载链接）
+models/*.pth
+models/*.pt
+models/*.onnx
+models/*.weights
+
+# 输出文件
+output/
+*.mp4
+*.avi
+
+# 输入视频（可选：如果视频较大可以排除）
+# input_videos/*.mp4
+# input_videos/*.avi
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.temp
+*.cache
+
+# 操作系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# PyTorch
+*.pth.tar
+
+# 测试覆盖率
+.coverage
+htmlcov/
+
+# 文档构建
+docs/_build/
