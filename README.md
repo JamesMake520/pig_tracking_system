@@ -39,10 +39,13 @@ chmod +x setup.sh
 
 安装脚本会自动完成以下步骤：
 - ✅ 创建 Python 虚拟环境
-- ✅ 安装 PyTorch（支持 CUDA 11.8/12.1/CPU）
+- ✅ 自动检测 CUDA 并安装 PyTorch（支持 CUDA 11.8/12.1/CPU）
 - ✅ 安装所有依赖包
 - ✅ 创建必要的目录结构
 - ✅ 运行环境测试
+
+可选环境变量（运行安装脚本前设置）：
+- `PIG_CUDA=auto|cu121|cu118|cpu`（默认 `auto`，自动检测 CUDA 版本）
 
 ### 3. 准备模型和视频
 

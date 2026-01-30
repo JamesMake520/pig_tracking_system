@@ -3,6 +3,114 @@
 
 set -e
 
+: "${PIG_CUDA:=auto}"
+
+resolve_cuda_choice() {
+    local choice="${PIG_CUDA,,}"
+    case "$choice" in
+        cu118|11.8)
+            CUDA_CHOICE="cu118"
+            CUDA_VERSION="11.8"
+            CUDA_VERSION_SOURCE="env:PIG_CUDA"
+            return
+            ;;
+        cu121|12.1)
+            CUDA_CHOICE="cu121"
+            CUDA_VERSION="12.1"
+            CUDA_VERSION_SOURCE="env:PIG_CUDA"
+            return
+            ;;
+        cpu)
+            CUDA_CHOICE="cpu"
+            CUDA_VERSION="CPU"
+            CUDA_VERSION_SOURCE="env:PIG_CUDA"
+            return
+            ;;
+        auto|"")
+            ;;
+        *)
+            ;;
+    esac
+
+    detect_cuda_version
+    if [[ -n "$CUDA_VERSION" ]]; then
+        map_cuda_version "$CUDA_VERSION"
+    else
+        CUDA_CHOICE="cpu"
+    fi
+}
+
+detect_cuda_version() {
+    CUDA_VERSION=""
+    CUDA_VERSION_SOURCE=""
+
+    if [[ -n "${CUDA_PATH:-}" && -f "${CUDA_PATH}/version.txt" ]]; then
+        CUDA_VERSION="$(grep -i "CUDA Version" "${CUDA_PATH}/version.txt" | awk '{print $3}' | head -n1)"
+        if [[ -n "$CUDA_VERSION" ]]; then
+            CUDA_VERSION_SOURCE="CUDA_PATH"
+            return
+        fi
+    fi
+
+    if [[ -n "${CUDA_HOME:-}" && -f "${CUDA_HOME}/version.txt" ]]; then
+        CUDA_VERSION="$(grep -i "CUDA Version" "${CUDA_HOME}/version.txt" | awk '{print $3}' | head -n1)"
+        if [[ -n "$CUDA_VERSION" ]]; then
+            CUDA_VERSION_SOURCE="CUDA_HOME"
+            return
+        fi
+    fi
+
+    if command -v nvidia-smi >/dev/null 2>&1; then
+        CUDA_VERSION="$(nvidia-smi | sed -n 's/.*CUDA Version: \([0-9.]*\).*/\1/p' | head -n1)"
+        if [[ -n "$CUDA_VERSION" ]]; then
+            CUDA_VERSION_SOURCE="nvidia-smi"
+            return
+        fi
+    fi
+
+    if command -v nvcc >/dev/null 2>&1; then
+        CUDA_VERSION="$(nvcc --version | sed -n 's/.*release \([0-9.]*\),.*/\1/p' | head -n1)"
+        if [[ -n "$CUDA_VERSION" ]]; then
+            CUDA_VERSION_SOURCE="nvcc"
+            return
+        fi
+    fi
+}
+
+map_cuda_version() {
+    local ver="$1"
+    local major="${ver%%.*}"
+    local rest="${ver#*.}"
+    local minor="${rest%%.*}"
+
+    if [[ "$ver" == "$major" ]]; then
+        minor=0
+    fi
+
+    if (( major > 12 )); then
+        CUDA_CHOICE="cu121"
+        return
+    fi
+    if (( major == 12 )); then
+        if (( minor >= 1 )); then
+            CUDA_CHOICE="cu121"
+        else
+            CUDA_CHOICE="cu118"
+        fi
+        return
+    fi
+    if (( major == 11 )); then
+        if (( minor >= 8 )); then
+            CUDA_CHOICE="cu118"
+        else
+            CUDA_CHOICE="cpu"
+        fi
+        return
+    fi
+
+    CUDA_CHOICE="cpu"
+}
+
 echo "================================================"
 echo "猪只追踪系统 - 环境配置脚本"
 echo "================================================"
@@ -40,40 +148,43 @@ echo ""
 
 # 升级 pip
 echo "[4/6] 升级 pip..."
-pip install --upgrade pip
+python3 -m pip install --upgrade pip
 echo ""
 
-# 安装 PyTorch (根据系统自动选择)
+# 安装 PyTorch（自动检测 CUDA）
 echo "[5/6] 安装 PyTorch..."
-echo "  请选择安装方式:"
-echo "  1) CUDA 11.8 (GPU)"
-echo "  2) CUDA 12.1 (GPU)"
-echo "  3) CPU only"
-read -p "  请输入选项 [1-3]: " cuda_choice
+CUDA_CHOICE=""
+CUDA_VERSION=""
+CUDA_VERSION_SOURCE=""
+resolve_cuda_choice
 
-case $cuda_choice in
-    1)
+case "$CUDA_CHOICE" in
+    cu118)
+        echo "  检测到 CUDA 版本: $CUDA_VERSION ($CUDA_VERSION_SOURCE)"
         echo "  安装 PyTorch (CUDA 11.8)..."
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+        python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
         ;;
-    2)
+    cu121)
+        echo "  检测到 CUDA 版本: $CUDA_VERSION ($CUDA_VERSION_SOURCE)"
         echo "  安装 PyTorch (CUDA 12.1)..."
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-        ;;
-    3)
-        echo "  安装 PyTorch (CPU)..."
-        pip install torch torchvision torchaudio
+        python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
         ;;
     *)
-        echo "  [ERROR] 无效选项"
-        exit 1
+        if [[ "${PIG_CUDA,,}" == "cpu" ]]; then
+            echo "  已指定 PIG_CUDA=cpu，安装 CPU 版本"
+        elif [[ -n "$CUDA_VERSION" ]]; then
+            echo "  [WARN] CUDA 版本不满足 11.8+（检测到: $CUDA_VERSION）。将安装 CPU 版本"
+        else
+            echo "  [WARN] 未检测到 NVIDIA CUDA，将安装 CPU 版本"
+        fi
+        python3 -m pip install torch torchvision torchaudio
         ;;
 esac
 echo ""
 
 # 安装依赖包
 echo "[6/6] 安装项目依赖..."
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 echo "  [OK] 依赖安装完成"
 echo ""
 

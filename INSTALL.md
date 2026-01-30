@@ -54,7 +54,7 @@ cd pig_tracking_system
 setup.bat
 ```
 
-3. 按提示选择 CUDA 版本（1=CUDA 11.8, 2=CUDA 12.1, 3=CPU）
+3. 脚本会自动检测 CUDA 版本并安装对应 PyTorch（可用 `PIG_CUDA=auto|cu121|cu118|cpu` 覆盖）
 
 ### Linux/Mac 用户
 
@@ -70,7 +70,7 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-3. 按提示选择 CUDA 版本
+3. 脚本会自动检测 CUDA 版本并安装对应 PyTorch（可用 `PIG_CUDA=auto|cu121|cu118|cpu` 覆盖）
 
 ## 手动安装
 
