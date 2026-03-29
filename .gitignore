@@ -29,6 +29,9 @@ models/*.pt
 models/*.onnx
 models/*.weights
 
+# 部署用大文件
+deploy/*.onnx
+
 # 输出文件
 output/
 *.mp4
